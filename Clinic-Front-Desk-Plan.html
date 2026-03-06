@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinic Front Desk System — Product & Engineering Plan</title>
+  <style>
+    @media print {
+      body { margin: 0; padding: 16px; font-size: 11px; }
+      .page-break { page-break-before: always; }
+      a { color: #000; text-decoration: none; }
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.5;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px;
+      color: #1a1a1a;
+    }
+    h1 { font-size: 1.75rem; border-bottom: 2px solid #333; padding-bottom: 8px; margin-top: 0; }
+    h2 { font-size: 1.25rem; margin-top: 24px; margin-bottom: 12px; }
+    h3 { font-size: 1.1rem; margin-top: 16px; margin-bottom: 8px; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 24px; }
+    li { margin: 4px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.95em;
+    }
+    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+    th { background: #f5f5f5; font-weight: 600; }
+    pre, code {
+      background: #f5f5f5;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      padding: 12px;
+      overflow-x: auto;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+      margin: 12px 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    code { padding: 2px 6px; border-radius: 3px; }
+    .mermaid-note { font-style: italic; color: #555; margin: 8px 0; }
+    strong { font-weight: 600; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 24px 0; }
+  </style>
+</head>
+<body>
+
+<h1>Clinic Front Desk System — Product & Engineering Plan</h1>
+
+<p>You will build this with <strong>React + MUI</strong> (frontend), <strong>Node.js + Express</strong> (backend), and <strong>MongoDB</strong> (database). The PDF originally specified NestJS/MySQL/Next.js/Tailwind; your stack is a valid equivalent—Express and MongoDB map cleanly to the same features.</p>
+
+<hr />
+
+<h2>1. Requirements Dissection (What You're Building)</h2>
+
+<p>Break the PDF into <strong>four pillars</strong> so it feels less overwhelming:</p>
+
+<table>
+  <thead>
+    <tr><th>Pillar</th><th>What it means</th><th>Your responsibility</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Auth</strong></td><td>Front desk staff log in; no public signup</td><td>Login page, JWT, protected routes</td></tr>
+    <tr><td><strong>Doctors</strong></td><td>CRUD for doctor profiles (specialization, gender, location, availability)</td><td>Doctor list/add/edit/delete + search/filter</td></tr>
+    <tr><td><strong>Queue</strong></td><td>Walk-ins get a queue number; status = Waiting → With Doctor → Completed</td><td>Queue list, add patient, update status</td></tr>
+    <tr><td><strong>Appointments</strong></td><td>Book, view, reschedule, cancel; status = Booked / Completed / Canceled</td><td>Slots view, book/reschedule/cancel, status updates</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Optional (later):</strong> Deploy FE + BE, queue prioritization (e.g. "urgent").</p>
+<p>You do <strong>not</strong> need to build patient self-service or doctor login for the core scope—only front desk staff.</p>
+
+<hr />
+
+<h2>2. High-Level Architecture</h2>
+
+<pre>Frontend (React MUI): Pages, Components, API Services, State
+        ↓ REST API
+Backend (Express): Routes, Controllers, Auth Middleware, Models
+        ↓ Mongoose
+MongoDB: Collections</pre>
+
+<ul>
+  <li><strong>Frontend:</strong> React app (e.g. Vite or CRA) with MUI, calls Express REST API.</li>
+  <li><strong>Backend:</strong> Express server, JWT auth, Mongoose for MongoDB.</li>
+  <li><strong>Deploy:</strong> FE and BE as two separate deployables (e.g. Vercel/Netlify for FE, Railway/Render/Fly.io for BE).</li>
+</ul>
+
+<hr />
+
+<h2>3. Where to Create the Project</h2>
+
+<p>Create <strong>one parent folder</strong> (e.g. <code>clinic-front-desk</code>) and two projects inside it:</p>
+<ul>
+  <li><code>clinic-front-desk/frontend</code> — React + MUI app</li>
+  <li><code>clinic-front-desk/backend</code> — Node + Express + MongoDB app</li>
+</ul>
+<p>So you have a <strong>monorepo-style</strong> layout: one repo, two deployable apps.</p>
+
+<hr />
+
+<h2>4. Backend (Node.js + Express + MongoDB) — Folders & Files</h2>
+
+<p><strong>Root:</strong> <code>backend/</code></p>
+
+<h3>4.1 Folder structure</h3>
+
+<pre>backend/
+├── src/
+│   ├── config/           # env, db connection
+│   ├── middleware/       # auth (JWT), error handler, validation
+│   ├── models/           # Mongoose schemas (User, Doctor, Appointment, QueueEntry)
+│   ├── controllers/      # request handlers (auth, doctors, appointments, queue)
+│   ├── routes/           # route definitions (mount controllers)
+│   ├── services/         # optional: business logic separate from controllers
+│   ├── utils/            # helpers (e.g. JWT sign/verify, errors)
+│   └── app.js or index.js
+├── tests/                # optional: integration or unit tests
+├── .env.example          # list required env vars (no secrets)
+├── .env                  # actual secrets (never commit)
+├── package.json
+├── .gitignore
+└── README.md</pre>
+
+<h3>4.2 Files you must have (checklist)</h3>
+
+<ul>
+  <li><strong>Entry:</strong> <code>src/app.js</code> or <code>src/index.js</code> — create Express app, connect DB, mount routes, start server.</li>
+  <li><strong>Config:</strong> <code>src/config/db.js</code> (or <code>database.js</code>) — MongoDB connection using <code>MONGO_URI</code> from env.</li>
+  <li><strong>Env:</strong> <code>.env</code> (local only), <code>.env.example</code> with placeholders e.g. <code>PORT=5000</code>, <code>MONGO_URI=</code>, <code>JWT_SECRET=</code>.</li>
+  <li><strong>Middleware:</strong>
+    <ul>
+      <li><code>src/middleware/auth.js</code> — verify JWT, attach user to <code>req</code>.</li>
+      <li><code>src/middleware/errorHandler.js</code> — central error handler.</li>
+      <li>Optional: <code>src/middleware/validate.js</code> — validate body/params (e.g. with express-validator).</li>
+    </ul>
+  </li>
+  <li><strong>Models (Mongoose):</strong>
+    <ul>
+      <li><code>src/models/User.js</code> — front desk staff (email, hashed password, role).</li>
+      <li><code>src/models/Doctor.js</code> — name, specialization, gender, location, availability.</li>
+      <li><code>src/models/Appointment.js</code> — patient info, doctor ref, datetime, status (booked/completed/canceled).</li>
+      <li><code>src/models/QueueEntry.js</code> — patient info, queue number, status (waiting/with_doctor/completed), optional priority.</li>
+    </ul>
+  </li>
+  <li><strong>Controllers:</strong>
+    <ul>
+      <li><code>src/controllers/authController.js</code> — login, return JWT (and optionally "me").</li>
+      <li><code>src/controllers/doctorController.js</code> — CRUD + search/filter.</li>
+      <li><code>src/controllers/appointmentController.js</code> — list, create, update (reschedule), cancel; update status.</li>
+      <li><code>src/controllers/queueController.js</code> — list queue, add patient, update status (and optional priority).</li>
+    </ul>
+  </li>
+  <li><strong>Routes:</strong>
+    <ul>
+      <li><code>src/routes/authRoutes.js</code> — POST /login (and optionally GET /me).</li>
+      <li><code>src/routes/doctorRoutes.js</code> — /doctors CRUD + GET with query params for search/filter.</li>
+      <li><code>src/routes/appointmentRoutes.js</code> — /appointments CRUD + PATCH for status.</li>
+      <li><code>src/routes/queueRoutes.js</code> — /queue GET, POST, PATCH.</li>
+      <li><code>src/routes/index.js</code> — mount all routes under <code>/api/*</code>, apply auth middleware to protected routes.</li>
+    </ul>
+  </li>
+  <li><strong>Package:</strong> <code>package.json</code> — express, mongoose, jsonwebtoken, bcryptjs, dotenv, cors; dev: nodemon.</li>
+  <li><strong>Git:</strong> <code>.gitignore</code> — node_modules, .env, logs.</li>
+</ul>
+
+<p>You can add <code>src/services/</code> later if you want to keep controllers thin.</p>
+
+<div class="page-break"></div>
+
+<h2>5. Frontend (React + MUI) — Folders & Files</h2>
+
+<p><strong>Root:</strong> <code>frontend/</code></p>
+
+<h3>5.1 Folder structure</h3>
+
+<pre>frontend/
+├── public/
+│   └── index.html
+├── src/
+│   ├── api/              # all API calls (axios/fetch to backend)
+│   ├── components/       # reusable UI (buttons, modals, table wrappers)
+│   │   ├── common/       # shared (e.g. Layout, Header, Sidebar)
+│   │   └── ...
+│   ├── pages/            # one folder or file per "screen"
+│   ├── context/          # auth context (current user, login/logout)
+│   ├── hooks/            # optional: useAuth, useDoctors, etc.
+│   ├── utils/            # helpers (e.g. format date, constants)
+│   ├── App.jsx
+│   └── main.jsx
+├── .env.example          # VITE_API_URL or REACT_APP_API_URL
+├── .env
+├── package.json
+├── .gitignore
+└── README.md</pre>
+
+<h3>5.2 Files you must have (checklist)</h3>
+
+<ul>
+  <li><strong>Entry:</strong> <code>src/main.jsx</code> — render React app; <code>src/App.jsx</code> — router and layout (MUI theme/provider here if you use one).</li>
+  <li><strong>API layer:</strong>
+    <ul>
+      <li><code>src/api/axios.js</code> (or <code>client.js</code>) — create axios instance with base URL from env, attach JWT from storage, handle 401 (e.g. logout).</li>
+      <li><code>src/api/auth.js</code> — login(email, password).</li>
+      <li><code>src/api/doctors.js</code> — getDoctors, getDoctor(id), create, update, delete, search(params).</li>
+      <li><code>src/api/appointments.js</code> — list, create, update (reschedule), cancel, updateStatus.</li>
+      <li><code>src/api/queue.js</code> — getQueue, addPatient, updateStatus (and optional priority).</li>
+    </ul>
+  </li>
+  <li><strong>Auth:</strong>
+    <ul>
+      <li><code>src/context/AuthContext.jsx</code> — state: user, token, loading; actions: login, logout; read token from localStorage on init.</li>
+      <li>Optional: <code>src/components/common/ProtectedRoute.jsx</code> — redirect to login if not authenticated.</li>
+    </ul>
+  </li>
+  <li><strong>Pages (match PDF):</strong>
+    <ul>
+      <li><code>src/pages/LoginPage.jsx</code> — form → call auth API → store token → redirect to dashboard/front-desk.</li>
+      <li><code>src/pages/FrontDeskPage.jsx</code> or <code>DashboardPage.jsx</code> — landing after login; links/cards to Queue and Appointments.</li>
+      <li><code>src/pages/QueueManagementPage.jsx</code> — list queue (number, status), add walk-in, update status (Waiting / With Doctor / Completed).</li>
+      <li><code>src/pages/AppointmentManagementPage.jsx</code> — list doctors and slots, book/reschedule/cancel, show appointment status.</li>
+      <li>Optional: <code>src/pages/DoctorsPage.jsx</code> — list, add, edit, delete doctors; search/filter. You can merge "Doctors" into Appointment Management if you prefer fewer pages.</li>
+    </ul>
+  </li>
+  <li><strong>Components:</strong>
+    <ul>
+      <li><code>src/components/common/Layout.jsx</code> — sidebar/nav + outlet for MUI layout.</li>
+      <li>Reusable pieces as needed: DataTable for queue and appointments, Modal/Dialog for forms, StatusChip for statuses.</li>
+    </ul>
+  </li>
+  <li><strong>Env:</strong> <code>.env</code> with <code>VITE_API_URL=http://localhost:5000</code> (or <code>REACT_APP_API_URL</code> if using CRA); <code>.env.example</code> with same key, no real URL.</li>
+  <li><strong>Package:</strong> <code>package.json</code> — react, react-dom, react-router-dom, @mui/material, @emotion/react, @emotion/styled, axios.</li>
+  <li><strong>Git:</strong> <code>.gitignore</code> — node_modules, .env, build.</li>
+</ul>
+
+<hr />
+
+<h2>6. Step-by-Step Order of Execution (No Coding, Just Sequence)</h2>
+
+<ol>
+  <li><strong>Setup</strong>
+    <ul>
+      <li>Create parent folder and <code>frontend</code> / <code>backend</code> subfolders.</li>
+      <li>Initialize both (npm init, then install dependencies; frontend: Vite+React or CRA).</li>
+      <li>Add <code>.env.example</code> and <code>.gitignore</code> in both; document required env vars in README.</li>
+    </ul>
+  </li>
+  <li><strong>Backend first (so FE has an API to call)</strong>
+    <ul>
+      <li>Config: DB connection from env.</li>
+      <li>Models: User, Doctor, Appointment, QueueEntry.</li>
+      <li>Auth: login endpoint, JWT issue, auth middleware.</li>
+      <li>Routes: mount auth (public) and rest under <code>/api/*</code> with auth middleware.</li>
+      <li>Controllers: doctors CRUD + filter, appointments CRUD + status, queue list/add/update.</li>
+      <li>Test with Postman/Thunder Client (no UI yet).</li>
+    </ul>
+  </li>
+  <li><strong>Frontend skeleton</strong>
+    <ul>
+      <li>API client (base URL, JWT attachment, 401 handling).</li>
+      <li>Auth context + login page; protected route wrapper.</li>
+      <li>Layout (sidebar/nav) and placeholder pages for Front Desk, Queue, Appointments (and Doctors if separate).</li>
+      <li>Wire login to backend and list pages to real endpoints (even simple lists).</li>
+    </ul>
+  </li>
+  <li><strong>Frontend features (in order)</strong>
+    <ul>
+      <li>Doctors: list, search/filter, add/edit/delete (or integrate into appointments screen).</li>
+      <li>Appointments: view doctors/slots, book, reschedule, cancel, show status.</li>
+      <li>Queue: view queue, add walk-in, update status.</li>
+      <li>Polish: error messages, loading states, basic validation.</li>
+    </ul>
+  </li>
+  <li><strong>Optional</strong>
+    <ul>
+      <li>Queue priority (e.g. "urgent" flag and sort).</li>
+      <li>Simple tests for critical API routes.</li>
+    </ul>
+  </li>
+  <li><strong>Deploy</strong>
+    <ul>
+      <li><strong>Backend:</strong> Deploy Express app to a Node host (e.g. Railway, Render, Fly.io). Set <code>MONGO_URI</code> (e.g. MongoDB Atlas) and <code>JWT_SECRET</code> in env. Expose one URL (e.g. <code>https://your-api.railway.app</code>).</li>
+      <li><strong>Frontend:</strong> Build (<code>npm run build</code>), deploy dist/ to Vercel/Netlify. Set env to <code>VITE_API_URL=https://your-api.railway.app</code> for production. Ensure CORS on backend allows that origin.</li>
+      <li><strong>Wrap:</strong> Update README with live FE and BE links, env vars, and how to run locally.</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h2>7. How to Use This Plan Day-to-Day</h2>
+
+<ul>
+  <li><strong>Product manager view:</strong> Use the four pillars (Auth, Doctors, Queue, Appointments) as milestones. Finish one pillar (backend + frontend) before moving to the next.</li>
+  <li><strong>Engineering manager view:</strong> Use the file checklists above. Create empty files and folders first, then fill them in the order of the "Step-by-Step" section so you never block yourself (e.g. no FE work until auth and at least one API work).</li>
+  <li><strong>Deployment:</strong> Treat deploy as a separate mini-phase: get BE running and DB connected, then point FE build to that API and fix CORS/env.</li>
+</ul>
+
+<p>No code is included here—only structure, file names, and sequence. You can start by creating the folder trees and the listed files as stubs, then implement one pillar at a time.</p>
+
+</body>
+</html>

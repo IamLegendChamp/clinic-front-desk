@@ -1,42 +1,138 @@
+/* Layout & mobile-first responsive */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+@media (min-width: 600px) {
+  #root {
+    padding: 2rem;
+  }
+}
+
+/* Page wrapper: consistent padding, works on small screens */
+.page {
+  padding: 1rem;
+  max-width: 100%;
+}
+
+@media (min-width: 600px) {
+  .page {
+    padding: 1.5rem 24px;
+  }
+}
+
+/* Login form: narrow column, centered, touch-friendly */
+.page--narrow {
+  max-width: 320px;
+  margin: 1rem auto;
+  padding: 1rem;
+}
+
+@media (min-width: 600px) {
+  .page--narrow {
+    margin: 2rem auto;
+    padding: 1.5rem;
+  }
+}
+
+.page--narrow h1 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.page--narrow input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.page--narrow input:focus {
+  outline: none;
+  border-color: #333;
+}
+
+.page--narrow button[type="submit"] {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+
+.page--narrow .form-error {
+  color: #c00;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Dashboard & inner pages */
+.page h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+@media (min-width: 600px) {
+  .page h1 {
+    font-size: 1.75rem;
+  }
+}
+
+.page-nav {
+  margin-bottom: 1rem;
+}
+
+.page-nav a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.page-nav a:hover {
+  text-decoration: underline;
+}
+
+.page-links {
+  margin-top: 1rem;
+}
+
+.page-links a {
+  color: #0066cc;
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+
+.page-links a:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+/* Loading state */
+.loading {
   padding: 2rem;
   text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

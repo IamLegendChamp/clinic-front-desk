@@ -8,10 +8,7 @@ import { AppointmentsPage } from "./pages/AppointmentsPage";
 
 import "./App.css";
 
-function App() {
-  
-  
-  return (
+const App = () => (
     <AuthProvider>
         <BrowserRouter>
             <Routes>
@@ -25,7 +22,6 @@ function App() {
             </Routes>
         </BrowserRouter>
     </AuthProvider>
-  )
-}
+);
 
 export default App;

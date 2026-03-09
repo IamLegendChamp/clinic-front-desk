@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verify } from "../utils/jwt";
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         res.status(401).json({ message: 'Unauthorized' });
@@ -15,4 +15,4 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     } catch {
         res.status(401).json({ message: 'Unauthorized' });
     }
-}
+};

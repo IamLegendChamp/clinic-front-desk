@@ -4,7 +4,7 @@ import { User } from '../models/User';
 
 const MONGO_URI = process.env.MONGO_URI!;
 
-async function seed() {
+const seed = async () => {
   await mongoose.connect(MONGO_URI);
   const existing = await User.findOne({ email: 'staff@clinic.com' });
   if (existing) {
@@ -19,5 +19,5 @@ async function seed() {
   });
   console.log('Created user:', user.email, user.role);
   process.exit(0);
-}
+};
 seed().catch((err) => { console.error(err); process.exit(1); });

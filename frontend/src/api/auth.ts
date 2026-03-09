@@ -5,12 +5,12 @@ export interface LoginResponse {
     user: { id: string; email: string; role: string };
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export const login = async (email: string, password: string): Promise<LoginResponse> => {
     const { data } = await api.post<LoginResponse>('/api/auth/login', { email, password });
     return data;
-}
+};
 
-export async function getMe() {
+export const getMe = async () => {
     const { data } = await api.get<{ user: { id: string; email: string; role: string } }>('/api/auth/me');
     return data;
-}
+};

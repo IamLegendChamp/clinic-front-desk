@@ -8,7 +8,7 @@ import authRoutes from "./routes/authRoutes";
 
 const PORT = process.env.PORT ?? 5000;
 
-async function start() {
+const start = async () => {
     await connectDB();
     const app = express();
 
@@ -29,5 +29,5 @@ async function start() {
     app.use(errorHandler);
 
     app.listen(PORT, () => console.log(`Server on Port ${PORT}`))
-}
+};
 start();

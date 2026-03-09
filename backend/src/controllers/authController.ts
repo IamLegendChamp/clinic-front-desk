@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { User } from '../models/User';
 import { sign } from '../utils/jwt';
 
-export async function login(
+export const login = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -33,4 +33,4 @@ export async function login(
     } catch (err) {
         next(err);
     }
-}
+};

@@ -1,0 +1,5 @@
+{
+  "name": "clinic-front-desk",
+  "private": true,
+  "workspaces": ["backend", "frontend", "packages/*"]
+}

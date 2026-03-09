@@ -1,0 +1,17 @@
+{
+  "name": "frontend",
+  "targets": {
+    "test": {
+      "command": "vitest run",
+      "options": { "cwd": "{projectRoot}" }
+    },
+    "build": {
+      "command": "tsc -b && vite build",
+      "options": { "cwd": "{projectRoot}" }
+    },
+    "e2e": {
+      "command": "playwright test",
+      "options": { "cwd": "{projectRoot}" }
+    }
+  }
+}

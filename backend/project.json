@@ -1,0 +1,13 @@
+{
+  "name": "backend",
+  "targets": {
+    "test": {
+      "command": "vitest run",
+      "options": { "cwd": "{projectRoot}" }
+    },
+    "build": {
+      "command": "tsc",
+      "options": { "cwd": "{projectRoot}" }
+    }
+  }
+}

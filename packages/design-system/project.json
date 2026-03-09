@@ -1,0 +1,9 @@
+{
+  "name": "design-system",
+  "targets": {
+    "build": {
+      "command": "tsc",
+      "options": { "cwd": "{projectRoot}" }
+    }
+  }
+}

@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { LoginPage } from "./pages/LoginPage";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import { DashboardPage } from "./pages/DashboardPage";
+import { QueuePage } from "./pages/QueuePage";
+import { AppointmentsPage } from "./pages/AppointmentsPage";
 
 import "./App.css";
 
@@ -16,6 +18,8 @@ function App() {
                 <Route path='/login' element={<LoginPage  />} />
                 <Route element={<ProtectedRoute />}>
                     <Route path="/" element={<DashboardPage />} />
+                    <Route path="/queue" element={<QueuePage />} />
+                    <Route path="/appointments" element={<AppointmentsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -20,7 +20,7 @@ export async function login(
         }
         const match = await user.comparePassword(password);
         if (!match) {
-            res.status(401).json({ message: 'Incalid credentials' });
+            res.status(401).json({ message: 'Invalid credentials' });
             return;
         }
         const payload = {

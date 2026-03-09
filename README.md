@@ -8,6 +8,11 @@ Monorepo: backend (Node/Express/TS + MongoDB) + frontend (React/Vite).
 - **Backend API:** https://clinic-backend-9tkk.onrender.com/  
   - Health: https://clinic-backend-9tkk.onrender.com/health
 
+**Demo login** (for recruiters / reviewers):
+
+- **Email:** `staff@clinic.com`
+- **Password:** `Staff123!`
+
 ## Run locally
 
 **Backend**

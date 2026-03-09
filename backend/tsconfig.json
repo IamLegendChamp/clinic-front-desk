@@ -11,6 +11,6 @@
       "forceConsistentCasingInFileNames": true,
       "resolveJsonModule": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "../frontend/src/api/auth.ts", "../frontend/src/api/axios.ts"],
     "exclude": ["node_modules", "dist"]
   }

@@ -1,31 +1,26 @@
-import { useEffect, useState } from "react";
+import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { LoginPage } from "./pages/LoginPage";
+import { ProtectedRoute } from "./components/common/ProtectedRoute";
+import { DashboardPage } from "./pages/DashboardPage";
+
 import "./App.css";
 
 function App() {
-  const [backendStatus, setBackendStatus] = useState<string>('Checking...');
-  const apiUrl = import.meta.env.VITE_API_URL;
-
-  useEffect(() => {
-    if (!apiUrl) {
-      setBackendStatus('VITE_API_URL not set');
-      return;
-    }
-    fetch(`${apiUrl}/health`)
-      .then(res => res.json())
-      .then((data) => setBackendStatus(data?.message ?? 'Connected'))
-      .catch(() => setBackendStatus('Backend unreachable'))
-  }, [apiUrl]);
-
+  
+  
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Clinic Front Desk</h1>
-      <p>Backend: {backendStatus}</p>
-      <p>
-        <a href={apiUrl} target="_blank" rel="noopener noreferrer">API</a>
-        {' · '}
-        <a href="https://clinic-frontend-phi-jade.vercel.app" target="_blank" rel="noopener noreferrer">Frontend</a>
-      </p>
-    </div>
+    <AuthProvider>
+        <BrowserRouter>
+            <Routes>
+                <Route path='/login' element={<LoginPage  />} />
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/" element={<DashboardPage />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </BrowserRouter>
+    </AuthProvider>
   )
 }
 

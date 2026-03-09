@@ -6,6 +6,7 @@ export async function connectDB() {
     if (!MONGO_URI) {
         throw new Error("MONGO_URI is not defined");
     }
+    mongoose.set('strictQuery', true);
     await mongoose.connect(MONGO_URI);
     console.log("MongoDB connected");
 }

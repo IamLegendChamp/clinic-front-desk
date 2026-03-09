@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+interface IUser extends mongoose.Document {
+    email: string;
+    password: string;
+    role: 'staff' | 'admin';
+    comparePassword(candidatePassword: string): Promise<boolean>
+}
+
 const UserSchema = new mongoose.Schema(
     {
         email: { type: String, required: true, unique: true },
@@ -22,4 +29,4 @@ UserSchema.methods.comparePassword = function (candidatePassword: string) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-export const User = mongoose.model('User', UserSchema);
+export const User = mongoose.model<IUser>('User', UserSchema);

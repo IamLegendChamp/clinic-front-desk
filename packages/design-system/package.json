@@ -4,6 +4,8 @@
   "description": "Reusable design system components (Button, TextField) for any React project",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "type": "module",
   "files": ["dist"],
   "scripts": {
     "build": "tsc",

@@ -2,15 +2,15 @@
   "name": "frontend",
   "targets": {
     "test": {
-      "command": "vitest run",
+      "command": "node node_modules/vitest/vitest.mjs run",
       "options": { "cwd": "{projectRoot}" }
     },
     "build": {
-      "command": "tsc -b && vite build",
+      "command": "node node_modules/typescript/bin/tsc -b && node node_modules/vite/bin/vite.js build",
       "options": { "cwd": "{projectRoot}" }
     },
     "e2e": {
-      "command": "playwright test",
+      "command": "node node_modules/playwright/test/cli.js test",
       "options": { "cwd": "{projectRoot}" }
     }
   }

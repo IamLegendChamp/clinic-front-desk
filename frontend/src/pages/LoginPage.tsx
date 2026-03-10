@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Box from "@mui/material/Box";
+import { Button, TextField } from "@iamlegendchamp/design-system";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -21,26 +23,36 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="page page--narrow">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input
+    <Box className="page page--narrow" component="div">
+      <Box component="h1" sx={{ mb: 2 }}>Login</Box>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 320 }}
+      >
+        <TextField
           type="email"
-          placeholder="Email"
+          label="Email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <input
+        <TextField
           type="password"
-          placeholder="Password"
+          label="Password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        {error && <p className="form-error">{error}</p>}
-        <button type="submit">Login</button>
-      </form>
-    </div>
+        {error && (
+          <Box component="p" sx={{ color: 'error.main', m: 0 }} className="form-error">
+            {error}
+          </Box>
+        )}
+        <Button type="submit">Login</Button>
+      </Box>
+    </Box>
   );
 };

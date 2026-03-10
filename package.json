@@ -1,5 +1,6 @@
 {
   "name": "clinic-front-desk",
   "private": true,
-  "workspaces": ["backend", "frontend", "packages/*"]
+  "workspaces": ["backend", "frontend", "packages/*"],
+  "nohoist": ["**/backend/**", "**/frontend/**"]
 }

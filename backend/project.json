@@ -2,11 +2,11 @@
   "name": "backend",
   "targets": {
     "test": {
-      "command": "vitest run",
+      "command": "node node_modules/vitest/vitest.mjs run",
       "options": { "cwd": "{projectRoot}" }
     },
     "build": {
-      "command": "tsc",
+      "command": "npm exec -- tsc",
       "options": { "cwd": "{projectRoot}" }
     }
   }

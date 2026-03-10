@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
+import mongoose from 'mongoose';
 import { User } from '../models/User';
+import { RefreshToken } from '../models/RefreshToken';
 import { signAccessToken, signRefreshToken, verify } from '../utils/jwt';
+import { setAuthCookies } from '../utils/cookies';
 
 const APP_NAME = process.env.MFA_APP_NAME ?? 'Clinic Front Desk';
+const REFRESH_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7d
 
 /** GET /api/auth/mfa/setup — auth required; returns secret and QR data URL. */
 export const setup = async (req: Request, res: Response, next: NextFunction) => {
@@ -90,9 +94,15 @@ export const verifyMfa = async (req: Request, res: Response, next: NextFunction)
             res.status(401).json({ message: 'Invalid code' });
             return;
         }
-        const token = signAccessToken(payload);
-        const refreshToken = signRefreshToken(payload);
-        res.json({ token, refreshToken, user: payload });
+        const accessToken = signAccessToken(payload);
+        const { token: refreshToken, jti } = signRefreshToken(payload);
+        await RefreshToken.create({
+            jti,
+            userId: new mongoose.Types.ObjectId(payload.id),
+            expiresAt: new Date(Date.now() + REFRESH_EXPIRY_MS),
+        });
+        setAuthCookies(res, accessToken, refreshToken);
+        res.json({ user: payload });
     } catch (err) {
         next(err);
     }

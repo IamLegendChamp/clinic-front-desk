@@ -1,8 +1,6 @@
 import { api } from './axios';
 
 export interface LoginResponse {
-    token: string;
-    refreshToken: string;
     user: { id: string; email: string; role: string };
 }
 
@@ -24,14 +22,16 @@ export const login = async (
 };
 
 export interface RefreshResponse {
-    token: string;
-    refreshToken: string;
     user: { id: string; email: string; role: string };
 }
 
-export const refreshTokens = async (refreshToken: string): Promise<RefreshResponse> => {
-    const { data } = await api.post<RefreshResponse>('/api/auth/refresh', { refreshToken });
+export const refreshTokens = async (): Promise<RefreshResponse> => {
+    const { data } = await api.post<RefreshResponse>('/api/auth/refresh');
     return data;
+};
+
+export const logoutApi = async (): Promise<void> => {
+    await api.post('/api/auth/logout');
 };
 
 export const getMe = async () => {
@@ -55,8 +55,6 @@ export const mfaEnable = async (code: string): Promise<{ message: string }> => {
 };
 
 export interface MfaVerifyResponse {
-    token: string;
-    refreshToken: string;
     user: { id: string; email: string; role: string };
 }
 

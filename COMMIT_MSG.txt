@@ -1,0 +1,10 @@
+feat(auth): enterprise auth — httpOnly cookies, refresh rotation, server-side tokens
+
+- Backend: issue access + refresh in httpOnly cookies; no tokens in response body
+- Backend: refresh token rotation — store refresh jti in DB, one-time use; new pair on refresh
+- Backend: POST /api/auth/logout revokes refresh and clears cookies
+- Backend: auth middleware reads token from cookie or Authorization header
+- Frontend: axios withCredentials; no localStorage tokens; 401 → refresh then retry
+- Frontend: login/refresh return { user } only; logout calls API and redirects
+- Tests: auth.test.ts updated for cookie/body refresh and rotation; createTestApp for body parsing
+- Docs: README and TESTING-REFRESH-AND-MFA updated with testing steps

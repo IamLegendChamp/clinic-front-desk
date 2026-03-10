@@ -4,10 +4,10 @@ import { useAuth } from "../../context/AuthContext";
 
 
 export const ProtectedRoute = () => {
-    const { token, loading } = useAuth();
+    const { user, loading } = useAuth();
 
     if (loading) return <div className="loading">Loading...</div>
-    if (!token) return <Navigate to="/login" replace />
+    if (!user) return <Navigate to="/login" replace />
 
     return <Outlet />;
 };

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { login as loginApi, getMe, mfaVerify } from '../api/auth';
+import { login as loginApi, getMe, mfaVerify, logoutApi, refreshTokens } from '../api/auth';
 
 type User = { id: string; email: string; role: string } | null;
 
@@ -10,7 +10,6 @@ type LoginResult =
 
 type AuthContextType = {
     user: User;
-    token: string | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<LoginResult>;
     loginMfa: (tempToken: string, code: string) => Promise<void>;
@@ -21,7 +20,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User>(null);
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
     const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
@@ -34,60 +32,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 user: res.user,
             };
         }
-        setToken(res.token);
         setUser(res.user);
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('refreshToken', res.refreshToken);
-        localStorage.setItem('user', JSON.stringify(res.user));
         return { done: true };
     }, []);
 
     const loginMfa = useCallback(async (tempToken: string, code: string) => {
         const res = await mfaVerify(tempToken, code);
-        setToken(res.token);
         setUser(res.user);
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('refreshToken', res.refreshToken);
-        localStorage.setItem('user', JSON.stringify(res.user));
     }, []);
 
-    const logout = useCallback(() => {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+    const logout = useCallback(async () => {
+        try {
+            await logoutApi();
+        } finally {
+            setUser(null);
+            window.location.href = '/login';
+        }
     }, []);
 
     useEffect(() => {
-        if (!token) {
-            queueMicrotask(() => setLoading(false));
-            return;
-        }
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored) as User;
-                queueMicrotask(() => setUser(parsed));
-            } catch {
-                queueMicrotask(() => setUser(null));
-            }
-        }
         getMe()
             .then((res) => setUser(res.user))
-            .catch(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                setToken(null);
-                setUser(null);
-            })
+            .catch(() =>
+                refreshTokens()
+                    .then(() => getMe().then((res) => setUser(res.user)))
+                    .catch(() => setUser(null))
+            )
             .finally(() => setLoading(false));
-    }, [token]);
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, loginMfa, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, loginMfa, logout }}>
             {children}
         </AuthContext.Provider>
     );

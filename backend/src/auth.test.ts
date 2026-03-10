@@ -1,12 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
-import { createApp } from './app';
+import { createApp, createTestApp } from './app';
 import { User } from './models/User';
-import { sign, signRefreshToken } from './utils/jwt';
+import { RefreshToken } from './models/RefreshToken';
+import { sign, signRefreshToken, verifyRefresh } from './utils/jwt';
 
 vi.mock('./models/User', () => ({
   User: {
     findOne: vi.fn(),
+    findById: vi.fn(),
+  },
+}));
+
+vi.mock('./models/RefreshToken', () => ({
+  RefreshToken: {
+    create: vi.fn().mockResolvedValue({}),
+    findOneAndDelete: vi.fn(),
   },
 }));
 
@@ -61,7 +70,7 @@ describe('POST /api/auth/login', () => {
     expect(res.body).toEqual({ message: 'Invalid credentials' });
   });
 
-  it('returns 200 with token and user when credentials are valid', async () => {
+  it('returns 200 with user and sets httpOnly cookies when credentials are valid', async () => {
     const mockUser = {
       _id: { toString: () => 'user-id-123' },
       email: 'staff@clinic.com',
@@ -72,25 +81,32 @@ describe('POST /api/auth/login', () => {
     const app = createApp();
     const res = await request(app)
       .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
       .send({ email: 'staff@clinic.com', password: 'correct' });
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token');
-    expect(res.body).toHaveProperty('refreshToken');
-    expect(typeof res.body.token).toBe('string');
-    expect(typeof res.body.refreshToken).toBe('string');
-    expect(res.body.user).toEqual({
-      id: 'user-id-123',
-      email: 'staff@clinic.com',
-      role: 'staff',
-    });
+    expect(res.body).toEqual({ user: { id: 'user-id-123', email: 'staff@clinic.com', role: 'staff' } });
+    expect(res.body).not.toHaveProperty('token');
+    expect(res.body).not.toHaveProperty('refreshToken');
+    expect(res.headers['set-cookie']).toBeDefined();
+    expect(Array.isArray(res.headers['set-cookie'])).toBe(true);
+    expect(res.headers['set-cookie'].some((c: string) => c.includes('accessToken='))).toBe(true);
+    expect(res.headers['set-cookie'].some((c: string) => c.includes('refreshToken='))).toBe(true);
   });
 });
 
 describe('POST /api/auth/refresh', () => {
-  it('returns 400 when refreshToken is missing', async () => {
+  it('round-trips refresh token with jti', () => {
+    const payload = { id: 'u', email: 'e@e.com', role: 'staff' };
+    const { token, jti } = signRefreshToken(payload);
+    const decoded = verifyRefresh(token);
+    expect(decoded).toMatchObject(payload);
+    expect(decoded.jti).toBe(jti);
+  });
+
+  it('returns 401 when refresh cookie is missing', async () => {
     const app = createApp();
-    const res = await request(app).post('/api/auth/refresh').send({});
-    expect(res.status).toBe(400);
+    const res = await request(app).post('/api/auth/refresh');
+    expect(res.status).toBe(401);
     expect(res.body).toEqual({ message: 'Refresh token required' });
   });
 
@@ -98,23 +114,49 @@ describe('POST /api/auth/refresh', () => {
     const app = createApp();
     const res = await request(app)
       .post('/api/auth/refresh')
-      .send({ refreshToken: 'invalid' });
+      .set('Cookie', ['refreshToken=invalid']);
     expect(res.status).toBe(401);
     expect(res.body).toEqual({ message: 'Invalid or expired refresh token' });
   });
 
-  it('returns 200 with new token and refreshToken when valid', async () => {
+  it('returns 401 when refresh payload has invalid id (malformed)', async () => {
     const payload = { id: 'user-1', email: 'staff@clinic.com', role: 'staff' };
-    const refreshToken = signRefreshToken(payload);
-    const app = createApp();
+    const { token: refreshToken } = signRefreshToken(payload);
+    const app = createTestApp();
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .set('Content-Type', 'application/json')
+      .send({ refreshToken });
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: 'Invalid or expired refresh token' });
+  });
+
+  it('returns 200 with user and new cookies when valid refresh (rotation)', async () => {
+    const payload = { id: '507f1f77bcf86cd799439011', email: 'staff@clinic.com', role: 'staff' };
+    const { token: refreshToken, jti } = signRefreshToken(payload);
+    vi.mocked(RefreshToken.findOneAndDelete).mockResolvedValue({ jti } as never);
+    vi.mocked(RefreshToken.create).mockResolvedValue({} as never);
+    const app = createTestApp();
     const res = await request(app)
       .post('/api/auth/refresh')
       .set('Content-Type', 'application/json')
       .send({ refreshToken });
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token');
-    expect(res.body).toHaveProperty('refreshToken');
     expect(res.body.user).toMatchObject(payload);
+    expect(res.body).not.toHaveProperty('token');
+    expect(res.headers['set-cookie']).toBeDefined();
+    expect(res.headers['set-cookie'].some((c: string) => c.includes('accessToken='))).toBe(true);
+    expect(res.headers['set-cookie'].some((c: string) => c.includes('refreshToken='))).toBe(true);
+  });
+});
+
+describe('POST /api/auth/logout', () => {
+  it('returns 200 and clears cookies', async () => {
+    const app = createApp();
+    const res = await request(app).post('/api/auth/logout');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Logged out' });
+    expect(res.headers['set-cookie']).toBeDefined();
   });
 });
 

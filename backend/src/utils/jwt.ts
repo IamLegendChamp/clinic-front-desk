@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 
 const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY ?? '15m';
@@ -16,19 +16,19 @@ export type JwtPayload = { id: string; email: string; role: string };
 export type RefreshPayload = JwtPayload & { jti: string };
 
 export const signAccessToken = (payload: JwtPayload) => {
-    return jwt.sign(payload, getSecret(), { expiresIn: ACCESS_EXPIRY });
+    return jwt.sign(payload, getSecret(), { expiresIn: ACCESS_EXPIRY } as SignOptions);
 };
 
 /** Returns the token and its jti (store jti in DB for rotation/revocation). */
 export const signRefreshToken = (payload: JwtPayload): { token: string; jti: string } => {
     const jti = randomUUID();
-    const token = jwt.sign(payload, getSecret(), { expiresIn: REFRESH_EXPIRY, jwtid: jti });
+    const token = jwt.sign(payload, getSecret(), { expiresIn: REFRESH_EXPIRY, jwtid: jti } as SignOptions);
     return { token, jti };
 };
 
 /** Short-lived token for MFA step (e.g. 2 min). */
 export const signMfaTempToken = (payload: JwtPayload) => {
-    return jwt.sign(payload, getSecret(), { expiresIn: '2m' });
+    return jwt.sign(payload, getSecret(), { expiresIn: '2m' } as SignOptions);
 };
 
 /** @deprecated Use signAccessToken for new code. */

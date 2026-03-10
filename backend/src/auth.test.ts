@@ -89,8 +89,13 @@ describe('POST /api/auth/login', () => {
     expect(res.body).not.toHaveProperty('refreshToken');
     expect(res.headers['set-cookie']).toBeDefined();
     expect(Array.isArray(res.headers['set-cookie'])).toBe(true);
-    expect(res.headers['set-cookie'].some((c: string) => c.includes('accessToken='))).toBe(true);
-    expect(res.headers['set-cookie'].some((c: string) => c.includes('refreshToken='))).toBe(true);
+    const setCookies = Array.isArray(res.headers['set-cookie'])
+      ? res.headers['set-cookie']
+      : res.headers['set-cookie']
+        ? [res.headers['set-cookie'] as string]
+        : [];
+    expect(setCookies.some((c) => c.includes('accessToken='))).toBe(true);
+    expect(setCookies.some((c) => c.includes('refreshToken='))).toBe(true);
   });
 });
 
@@ -145,8 +150,13 @@ describe('POST /api/auth/refresh', () => {
     expect(res.body.user).toMatchObject(payload);
     expect(res.body).not.toHaveProperty('token');
     expect(res.headers['set-cookie']).toBeDefined();
-    expect(res.headers['set-cookie'].some((c: string) => c.includes('accessToken='))).toBe(true);
-    expect(res.headers['set-cookie'].some((c: string) => c.includes('refreshToken='))).toBe(true);
+    const setCookiesRotate = Array.isArray(res.headers['set-cookie'])
+      ? res.headers['set-cookie']
+      : res.headers['set-cookie']
+        ? [res.headers['set-cookie'] as string]
+        : [];
+    expect(setCookiesRotate.some((c) => c.includes('accessToken='))).toBe(true);
+    expect(setCookiesRotate.some((c) => c.includes('refreshToken='))).toBe(true);
   });
 });
 

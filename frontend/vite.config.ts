@@ -1,10 +1,10 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react-swc';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()] as any,
   resolve: {
     dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled', '@mui/material'],
   },

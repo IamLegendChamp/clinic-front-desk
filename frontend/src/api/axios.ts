@@ -31,7 +31,7 @@ api.interceptors.response.use(
         if (!original._retry) {
             original._retry = true;
             if (refreshing) {
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve, _reject) => {
                     queue.push(() => resolve(api(original)));
                 });
             }

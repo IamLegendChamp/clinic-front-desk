@@ -2,5 +2,8 @@
   "name": "clinic-front-desk",
   "private": true,
   "workspaces": ["backend", "frontend", "packages/*"],
-  "nohoist": ["**/backend/**", "**/frontend/**"]
+  "nohoist": ["**/backend/**", "**/frontend/**"],
+  "scripts": {
+    "build": "yarn workspace @iamlegendchamp/design-system build && yarn workspace frontend build"
+  }
 }

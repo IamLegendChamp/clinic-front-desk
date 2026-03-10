@@ -32,12 +32,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
-        working-directory: frontend
+      - name: Build design-system
+        run: yarn workspace @iamlegendchamp/design-system build
       - name: Run frontend tests
-        run: yarn test
-        working-directory: frontend
+        run: yarn workspace frontend test
 
   e2e:
     name: E2E (Playwright)
@@ -48,12 +48,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
-        working-directory: frontend
+      - name: Build design-system
+        run: yarn workspace @iamlegendchamp/design-system build
+      - name: Build frontend
+        run: yarn workspace frontend build
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
         working-directory: frontend
       - name: Run E2E tests
-        run: yarn e2e
-        working-directory: frontend
+        run: yarn workspace frontend e2e

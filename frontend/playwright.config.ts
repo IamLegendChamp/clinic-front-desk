@@ -13,7 +13,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'yarn dev',
+    command: process.env.CI ? 'yarn vite preview --port 5173' : 'yarn dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
   },

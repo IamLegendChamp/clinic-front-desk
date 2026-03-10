@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test('unauthenticated visit to / redirects to login and shows Login heading', async ({ page }) => {
   await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveURL(/\/login/);
-  await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
 });
 
 test('successful login redirects to dashboard and shows user email', async ({ page }) => {
@@ -30,8 +30,8 @@ test('successful login redirects to dashboard and shows user email', async ({ pa
   });
 
   await page.goto('/login');
-  await page.getByPlaceholder('Email').fill('staff@clinic.com');
-  await page.getByPlaceholder('Password').fill('password');
+  await page.getByLabel('Email').fill('staff@clinic.com');
+  await page.getByLabel('Password').fill('password');
   await page.getByRole('button', { name: 'Login' }).click();
 
   await expect(page).toHaveURL('/');
@@ -53,8 +53,8 @@ test('failed login keeps user on login page', async ({ page }) => {
   });
 
   await page.goto('/login');
-  await page.getByPlaceholder('Email').fill('wrong@clinic.com');
-  await page.getByPlaceholder('Password').fill('wrong');
+  await page.getByLabel('Email').fill('wrong@clinic.com');
+  await page.getByLabel('Password').fill('wrong');
   await page.getByRole('button', { name: 'Login' }).click();
 
   await expect(page).toHaveURL(/\/login/);

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { login } from '../controllers/authController';
+import { login, refresh } from '../controllers/authController';
+import { setup as mfaSetup, enable as mfaEnable, verifyMfa, disable as mfaDisable } from '../controllers/mfaController';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
@@ -7,10 +8,19 @@ const router = Router();
 // POST /api/auth/login — no auth required
 router.post('/login', login);
 
+// POST /api/auth/refresh — no auth required; body: { refreshToken }
+router.post('/refresh', refresh);
+
 // GET /api/auth/me - protected; returns req.user
 router.get('/me', authMiddleware, (req: Request, res: Response) => {
     const user = (req as Request & { user: { id: string; email: string; role: string } }).user;
     res.json({ user });
-})
+});
+
+// MFA — setup returns QR; enable confirms with code; verify exchanges tempToken+code for tokens; disable turns off MFA
+router.get('/mfa/setup', authMiddleware, mfaSetup);
+router.post('/mfa/enable', authMiddleware, mfaEnable);
+router.post('/mfa/verify', verifyMfa);
+router.post('/mfa/disable', authMiddleware, mfaDisable);
 
 export default router;

@@ -5,6 +5,8 @@ interface IUser extends mongoose.Document {
     email: string;
     password: string;
     role: 'staff' | 'admin';
+    mfaSecret?: string;
+    mfaEnabled: boolean;
     comparePassword(candidatePassword: string): Promise<boolean>
 }
 
@@ -12,7 +14,9 @@ const UserSchema = new mongoose.Schema(
     {
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        role: { type: String, default: 'staff', enum: ['staff', 'admin'] }
+        role: { type: String, default: 'staff', enum: ['staff', 'admin'] },
+        mfaSecret: { type: String, required: false },
+        mfaEnabled: { type: Boolean, default: false }
     }, 
     { timestamps: true }
 );

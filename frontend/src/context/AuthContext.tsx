@@ -1,15 +1,19 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { login as loginApi, getMe } from '../api/auth';
-import type { LoginResponse } from '../api/auth';
+import { login as loginApi, getMe, mfaVerify } from '../api/auth';
 
 type User = { id: string; email: string; role: string } | null;
+
+type LoginResult =
+  | { done: true }
+  | { done: false; mfaRequired: true; tempToken: string; user: User };
 
 type AuthContextType = {
     user: User;
     token: string | null;
     loading: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<LoginResult>;
+    loginMfa: (tempToken: string, code: string) => Promise<void>;
     logout: () => void;
 };
 
@@ -20,11 +24,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
-    const login = useCallback(async (email: string, password: string) => {
-        const res: LoginResponse = await loginApi(email, password);
+    const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
+        const res = await loginApi(email, password);
+        if ('requiresMfa' in res && res.requiresMfa) {
+            return {
+                done: false,
+                mfaRequired: true,
+                tempToken: res.tempToken,
+                user: res.user,
+            };
+        }
         setToken(res.token);
         setUser(res.user);
         localStorage.setItem('token', res.token);
+        localStorage.setItem('refreshToken', res.refreshToken);
+        localStorage.setItem('user', JSON.stringify(res.user));
+        return { done: true };
+    }, []);
+
+    const loginMfa = useCallback(async (tempToken: string, code: string) => {
+        const res = await mfaVerify(tempToken, code);
+        setToken(res.token);
+        setUser(res.user);
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('refreshToken', res.refreshToken);
         localStorage.setItem('user', JSON.stringify(res.user));
     }, []);
 
@@ -32,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         window.location.href = '/login';
     }, []);
@@ -54,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .then((res) => setUser(res.user))
             .catch(() => {
                 localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
                 setToken(null);
                 setUser(null);
@@ -62,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [token]);
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, token, loading, login, loginMfa, logout }}>
             {children}
         </AuthContext.Provider>
     );

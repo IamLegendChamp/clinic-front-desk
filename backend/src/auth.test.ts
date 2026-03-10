@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from './app';
 import { User } from './models/User';
-import { sign } from './utils/jwt';
+import { sign, signRefreshToken } from './utils/jwt';
 
 vi.mock('./models/User', () => ({
   User: {
@@ -75,12 +75,46 @@ describe('POST /api/auth/login', () => {
       .send({ email: 'staff@clinic.com', password: 'correct' });
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('refreshToken');
     expect(typeof res.body.token).toBe('string');
+    expect(typeof res.body.refreshToken).toBe('string');
     expect(res.body.user).toEqual({
       id: 'user-id-123',
       email: 'staff@clinic.com',
       role: 'staff',
     });
+  });
+});
+
+describe('POST /api/auth/refresh', () => {
+  it('returns 400 when refreshToken is missing', async () => {
+    const app = createApp();
+    const res = await request(app).post('/api/auth/refresh').send({});
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Refresh token required' });
+  });
+
+  it('returns 401 when refresh token is invalid', async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .send({ refreshToken: 'invalid' });
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: 'Invalid or expired refresh token' });
+  });
+
+  it('returns 200 with new token and refreshToken when valid', async () => {
+    const payload = { id: 'user-1', email: 'staff@clinic.com', role: 'staff' };
+    const refreshToken = signRefreshToken(payload);
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .set('Content-Type', 'application/json')
+      .send({ refreshToken });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('refreshToken');
+    expect(res.body.user).toMatchObject(payload);
   });
 });
 

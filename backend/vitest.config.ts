@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./src/test-setup.ts'],
     env: {
       JWT_SECRET: process.env.JWT_SECRET || 'test-secret-for-vitest',
     },

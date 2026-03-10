@@ -1,15 +1,32 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY ?? '15m';
+const REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY ?? '7d';
 
-if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined in .env');
+function getSecret(): string {
+    const s = process.env.JWT_SECRET;
+    if (!s) throw new Error('JWT_SECRET is not defined in .env');
+    return s;
 }
 
-export const sign = (payload: { id: string, email: string, role: string }) => {
-    return jwt.sign(payload, JWT_SECRET!, { expiresIn: '7d' });
+export type JwtPayload = { id: string; email: string; role: string };
+
+export const signAccessToken = (payload: JwtPayload) => {
+    return jwt.sign(payload, getSecret(), { expiresIn: ACCESS_EXPIRY });
 };
 
+export const signRefreshToken = (payload: JwtPayload) => {
+    return jwt.sign(payload, getSecret(), { expiresIn: REFRESH_EXPIRY });
+};
+
+/** Short-lived token for MFA step (e.g. 2 min). */
+export const signMfaTempToken = (payload: JwtPayload) => {
+    return jwt.sign(payload, getSecret(), { expiresIn: '2m' });
+};
+
+/** @deprecated Use signAccessToken for new code. */
+export const sign = (payload: JwtPayload) => signAccessToken(payload);
+
 export const verify = (token: string) => {
-    return jwt.verify(token, JWT_SECRET!) as unknown as { id: string; email: string; role: string };
+    return jwt.verify(token, getSecret()) as unknown as JwtPayload;
 };

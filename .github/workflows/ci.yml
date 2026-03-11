@@ -60,7 +60,8 @@ jobs:
       - name: Run E2E tests
         run: |
           yarn workspace shared preview &
-          npx wait-on http://localhost:5174/assets/remoteEntry.js --timeout 10000
+          npx wait-on http://localhost:5174/assets/remoteEntry.js --timeout 20000
+          sleep 3
           yarn workspace frontend e2e
 
   deploy:

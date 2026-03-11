@@ -26,11 +26,6 @@ export const signRefreshToken = (payload: JwtPayload): { token: string; jti: str
     return { token, jti };
 };
 
-/** Short-lived token for MFA step (e.g. 2 min). */
-export const signMfaTempToken = (payload: JwtPayload) => {
-    return jwt.sign(payload, getSecret(), { expiresIn: '2m' } as SignOptions);
-};
-
 /** @deprecated Use signAccessToken for new code. */
 export const sign = (payload: JwtPayload) => signAccessToken(payload);
 

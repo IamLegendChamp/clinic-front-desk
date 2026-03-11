@@ -1,9 +1,23 @@
 {
   "name": "clinic-front-desk",
   "private": true,
-  "workspaces": ["backend", "frontend", "packages/*"],
-  "nohoist": ["**/backend/**", "**/frontend/**"],
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/*"
+  ],
+  "nohoist": [
+    "**/backend/**",
+    "**/frontend/**"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "wait-on": "^9.0.4"
+  },
   "scripts": {
-    "build": "yarn workspace @iamlegendchamp/design-system build && yarn workspace frontend build"
+    "build": "yarn workspace shared build && yarn workspace frontend build",
+    "dev": "concurrently \"yarn dev:shared\" \"yarn dev:frontend\"",
+    "dev:shared": "yarn workspace shared dev",
+    "dev:frontend": "wait-on http://localhost:5174/remoteEntry.js -t 30000 && yarn workspace frontend dev"
   }
 }

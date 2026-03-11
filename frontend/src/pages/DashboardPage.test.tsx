@@ -11,8 +11,9 @@ vi.mock('../context/AuthContext', () => ({
   }),
 }));
 
-vi.mock('@iamlegendchamp/design-system', () => ({
+vi.mock('../components/ui', () => ({
   Button: ({ children, ...props }: { children?: React.ReactNode }) => React.createElement('button', props, children),
+  TextField: (props: Record<string, unknown>) => React.createElement('input', { ...props, 'data-testid': 'textfield' }),
 }));
 
 describe('DashboardPage', () => {

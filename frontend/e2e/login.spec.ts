@@ -7,7 +7,6 @@ test('unauthenticated visit to / redirects to login and shows Login heading', as
 });
 
 test('successful login redirects to dashboard and shows user email', async ({ page }) => {
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test';
   const user = { id: 'user-1', email: 'staff@clinic.com', role: 'staff' };
 
   await page.route(/\/api\/auth\/login/, (route) => {
@@ -15,7 +14,7 @@ test('successful login redirects to dashboard and shows user email', async ({ pa
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ token, user }),
+        body: JSON.stringify({ user }),
       });
     } else {
       route.continue();

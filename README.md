@@ -1,6 +1,6 @@
 # Clinic Front Desk
 
-A full-stack app for clinic front-desk staff: sign in, manage a walk-in queue, and handle appointments. **Monorepo:** Node/Express/TypeScript API, React/Vite front end, MongoDB, shared design system.
+A full-stack app for clinic front-desk staff: sign in, manage a walk-in queue, and handle appointments. **Monorepo:** Node/Express/TypeScript API, React/Vite front end, MongoDB. **View:** MUIBook Web Components (React wrappers). **Shared logic:** Module Federation remote (`packages/shared`).
 
 ---
 
@@ -10,11 +10,11 @@ A full-stack app for clinic front-desk staff: sign in, manage a walk-in queue, a
 |------|----------------|
 | **Auth** | Email + password login; JWT access + refresh tokens. Tokens are sent in **httpOnly cookies** (no tokens in response body or localStorage). Unauthenticated users are redirected to login. |
 | **Refresh token** | When the access token expires, the app automatically gets a new one using the refresh token (sent in a cookie or body for compatibility). **Refresh token rotation:** each refresh issues a new refresh token and the old one is revoked in the DB, so tokens are one-time use. |
-| **MFA (TOTP)** | Optional two-factor auth with an authenticator app (e.g. Google Authenticator). Users can enable it from the dashboard; at login they enter email/password then a 6-digit code. Not SMS (no Twilio)—uses time-based codes only. |
-| **Dashboard** | Landing page after login; links to Queue and Appointments; logout; enable/disable MFA. |
+| **Dashboard** | Landing page after login; links to Queue and Appointments; logout. |
 | **Queue & Appointments** | Placeholder pages for walk-in queue and appointment booking—full features coming later. |
-| **Design system** | Shared React components (Button, TextField) in `packages/design-system`, built on MUI. Used by the frontend via workspace link. |
-| **CI** | GitHub Actions: backend tests, frontend unit tests, E2E (Playwright) against a production build. |
+| **View layer** | MUIBook Web Components (`@muibook/components`) with thin React wrappers in `frontend/src/components/ui/`. No business logic in components. |
+| **Shared logic** | Auth/API live in a federated remote (`packages/shared`); the frontend (host) loads them at runtime via Module Federation. |
+| **CI** | GitHub Actions: backend tests, frontend unit tests, E2E (Playwright). E2E runs with shared remote served on 5174. |
 
 ---
 
@@ -35,10 +35,11 @@ A full-stack app for clinic front-desk staff: sign in, manage a walk-in queue, a
 
 | Step | Command | Env |
 |------|--------|-----|
-| **Backend** | `cd backend && yarn install && yarn dev` | `.env`: `PORT`, `MONGO_URI`, `JWT_SECRET`. Optional: `JWT_ACCESS_EXPIRY`, `JWT_REFRESH_EXPIRY`, `MFA_APP_NAME`. |
-| **Frontend** | `cd frontend && yarn install && yarn dev` | `.env`: `VITE_API_URL=http://localhost:5000` |
+| **Backend** | `cd backend && yarn install && yarn dev` | `.env`: `PORT`, `MONGO_URI`, `JWT_SECRET`. Optional: `JWT_ACCESS_EXPIRY`, `JWT_REFRESH_EXPIRY`. |
+| **Shared remote** | From root: `yarn dev:shared` (builds and serves on **5174**) | — |
+| **Frontend** | From root: `yarn dev:frontend` (Vite dev on **5173**) | `.env`: `VITE_API_URL=http://localhost:5001` |
 
-Or from the repo root: `yarn install`, then `yarn workspace backend dev` (in one terminal) and `yarn workspace frontend dev` (in another). The backend dev script uses the root-installed `ts-node-dev`.
+**One command from root:** `yarn install` then `yarn dev` runs both shared (5174) and frontend (5173) via concurrently. For backend, run `yarn workspace backend dev` in a separate terminal.
 
 ---
 
@@ -46,11 +47,9 @@ Or from the repo root: `yarn install`, then `yarn workspace backend dev` (in one
 
 | Path | Purpose |
 |------|---------|
-| `backend/` | Express API: auth (login, refresh, me), MFA (setup, enable, verify, disable), health. Mongoose + MongoDB. |
-| `frontend/` | React SPA: login (with optional MFA step), dashboard, Queue/Appointments placeholders. React Router, auth context, protected routes. |
-| `packages/design-system/` | Shared UI package: Button, TextField (MUI-based). Consumed by frontend. |
-
-Nx is present for workspace tasks (e.g. `nx run backend:dev`); the main workflow is Yarn workspaces.
+| `backend/` | Express API: auth (login, refresh, me), health. Mongoose + MongoDB. |
+| `frontend/` | React SPA (host): login, dashboard, Queue/Appointments placeholders. Consumes shared remote at runtime; uses MUIBook via React wrappers. |
+| `packages/shared/` | Federated remote: auth API, axios client, config. Built with Vite + Module Federation; served at dev on 5174. |
 
 ---
 
@@ -62,16 +61,17 @@ Nx is present for workspace tasks (e.g. `nx run backend:dev`); the main workflow
 |------|--------|--------|
 | Backend (health + auth) | `backend/` | `cd backend && yarn test` |
 | Frontend unit tests | `frontend/` | `cd frontend && yarn test` |
-| E2E (Playwright) | repo root | `yarn e2e` (or see `frontend/` for Playwright config) |
+| E2E (Playwright) | repo root | Build shared + frontend, serve shared on 5174, then `yarn workspace frontend e2e`. CI does this automatically. |
 
 **Manual testing (enterprise auth: cookies + refresh rotation)**
 
-1. **Start backend and frontend**
+1. **Start backend, shared remote, and frontend**
    - Backend: `cd backend && yarn dev` (ensure `.env` has `MONGO_URI`, `JWT_SECRET`).
-   - Frontend: `cd frontend && yarn dev` (ensure `VITE_API_URL` points at backend, e.g. `http://localhost:5000`).
+   - From root: `yarn dev` (shared on 5174 + frontend on 5173), or run `yarn dev:shared` and `yarn dev:frontend` in two terminals.
+   - Ensure frontend `.env` has `VITE_API_URL` pointing at backend (e.g. `http://localhost:5001`).
 
 2. **Login and cookies**
-   - Open the app in the browser (same origin or configured CORS; e.g. frontend on `http://localhost:5173`, backend on `http://localhost:5000` with `FRONTEND_URL=http://localhost:5173`).
+   - Open the app in the browser (same origin or configured CORS; e.g. frontend on `http://localhost:5173`, backend on `http://localhost:5001` with `FRONTEND_URL=http://localhost:5173`).
    - Log in with valid credentials (e.g. demo: `staff@clinic.com` / `Staff123!`).
    - In DevTools → Application → Cookies, confirm `accessToken` and `refreshToken` are set (httpOnly, so not visible to JS). Response body should contain only `{ user }` (no tokens).
 
@@ -86,18 +86,16 @@ Nx is present for workspace tasks (e.g. `nx run backend:dev`); the main workflow
 5. **Logout**
    - Click Logout. Cookies should be cleared and you should be redirected to login. The refresh token should be revoked in the DB (so that token cannot be used again).
 
-**MFA testing** — See `docs/TESTING-REFRESH-AND-MFA.md` for enabling MFA, logging in with a code, and API-only flows.
-
 ---
 
 ## Docs
 
-- **Testing refresh token & MFA** — `docs/TESTING-REFRESH-AND-MFA.md` (how to test manually and what enterprises use for MFA).
-- **Architecture** — `docs/ARCHITECTURE-NOTES.md` (Module Federation vs Web Components vs the design-system library).
-- **Publishing the design system** — `PUBLISHING.md` (if you publish to npm/GitHub Packages).
+- **Architecture** — `docs/ARCHITECTURE-NOTES.md` (Web Components + Module Federation, shared remote, no logic in components).
+- **Testing refresh token** — `docs/TESTING-REFRESH-AND-MFA.md` (manual testing, cookies, refresh rotation).
+- **CI → Deploy** — `docs/CI-DEPLOY-SETUP.md` (GitHub Actions, Render + Vercel hooks).
 
 ---
 
 ## Deploy
 
-Backend: [Render](https://render.com) (or any Node host). Frontend: [Vercel](https://vercel.com) (or any static host). Set env vars in each; point frontend `VITE_API_URL` at the backend URL; allow the frontend origin in backend CORS (`FRONTEND_URL`).
+Backend: [Render](https://render.com) (or any Node host). Frontend: [Vercel](https://vercel.com) (or any static host). Set env vars in each; point frontend `VITE_API_URL` at the backend URL; allow the frontend origin in backend CORS (`FRONTEND_URL`). For the frontend build, set `VITE_SHARED_REMOTE_URL` to the URL where the shared remote is served (e.g. same origin `/shared/` or a CDN). The shared remote must be built (`yarn workspace shared build`) and deployed so its `remoteEntry.js` is available at that URL.

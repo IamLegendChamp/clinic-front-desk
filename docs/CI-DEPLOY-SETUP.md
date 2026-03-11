@@ -72,3 +72,5 @@ If a secret is missing, the workflow skips that deploy step (no failure).
 | 5 | Render and Vercel start a new build/deploy. |
 
 Everything stays automated; deploys run only after CI passes.
+
+**Note:** The frontend loads auth/API from a Module Federation remote (`packages/shared`). For production, build and serve the shared remote (e.g. under `/shared/` on the same origin or a CDN) and set `VITE_SHARED_REMOTE_URL` when building the frontend so the host can load `remoteEntry.js` from that URL.

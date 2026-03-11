@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
-import { signAccessToken, signRefreshToken, signMfaTempToken, verifyRefresh } from '../utils/jwt';
+import { signAccessToken, signRefreshToken, verifyRefresh } from '../utils/jwt';
 import { setAuthCookies, clearAuthCookies } from '../utils/cookies';
 
 const REFRESH_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7d
@@ -33,11 +33,6 @@ export const login = async (
             email: user.email,
             role: user.role,
         };
-        if (user.mfaEnabled) {
-            const tempToken = signMfaTempToken(payload);
-            res.json({ requiresMfa: true, tempToken, user: payload });
-            return;
-        }
         const accessToken = signAccessToken(payload);
         const { token: refreshToken, jti } = signRefreshToken(payload);
         await RefreshToken.create({

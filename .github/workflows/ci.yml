@@ -34,8 +34,8 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      - name: Build design-system
-        run: yarn workspace @iamlegendchamp/design-system build
+      - name: Build shared remote
+        run: yarn workspace shared build
       - name: Run frontend tests
         run: yarn workspace frontend test
 
@@ -50,13 +50,17 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      - name: Build design-system
-        run: yarn workspace @iamlegendchamp/design-system build
+      - name: Build shared remote
+        run: yarn workspace shared build
       - name: Build frontend
         run: yarn workspace frontend build
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
         working-directory: frontend
+      - name: Start shared remote server
+        run: yarn workspace shared preview &
+      - name: Wait for shared remote
+        run: npx wait-on http://localhost:5174/remoteEntry.js --timeout 10000
       - name: Run E2E tests
         run: yarn workspace frontend e2e
 

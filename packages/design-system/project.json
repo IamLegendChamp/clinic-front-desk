@@ -1,9 +1,0 @@
-{
-  "name": "design-system",
-  "targets": {
-    "build": {
-      "command": "npm exec -- tsc",
-      "options": { "cwd": "{projectRoot}" }
-    }
-  }
-}

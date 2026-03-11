@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { login, refresh, logout } from '../controllers/authController';
-import { setup as mfaSetup, enable as mfaEnable, verifyMfa, disable as mfaDisable } from '../controllers/mfaController';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
@@ -19,11 +18,5 @@ router.get('/me', authMiddleware, (req: Request, res: Response) => {
     const user = (req as Request & { user: { id: string; email: string; role: string } }).user;
     res.json({ user });
 });
-
-// MFA — setup returns QR; enable confirms with code; verify exchanges tempToken+code for tokens; disable turns off MFA
-router.get('/mfa/setup', authMiddleware, mfaSetup);
-router.post('/mfa/enable', authMiddleware, mfaEnable);
-router.post('/mfa/verify', verifyMfa);
-router.post('/mfa/disable', authMiddleware, mfaDisable);
 
 export default router;

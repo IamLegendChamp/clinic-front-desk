@@ -1,10 +1,11 @@
-feat(auth): enterprise auth — httpOnly cookies, refresh rotation, server-side tokens
+Remove TOTP/MFA; prepare for Entra ID (Azure AD) auth
 
-- Backend: issue access + refresh in httpOnly cookies; no tokens in response body
-- Backend: refresh token rotation — store refresh jti in DB, one-time use; new pair on refresh
-- Backend: POST /api/auth/logout revokes refresh and clears cookies
-- Backend: auth middleware reads token from cookie or Authorization header
-- Frontend: axios withCredentials; no localStorage tokens; 401 → refresh then retry
-- Frontend: login/refresh return { user } only; logout calls API and redirects
-- Tests: auth.test.ts updated for cookie/body refresh and rotation; createTestApp for body parsing
-- Docs: README and TESTING-REFRESH-AND-MFA updated with testing steps
+- Backend: drop MFA routes and mfaController, User.mfaSecret/mfaEnabled,
+  signMfaTempToken; remove speakeasy and qrcode deps
+- Shared: auth API now login/getMe/refresh/logout only; remove mfaSetup,
+  mfaEnable, mfaVerify, mfaDisable
+- Frontend: single-step login (email+password); remove MFA step and
+  dashboard "Enable MFA" section; simplify AuthContext (no loginMfa)
+- Docs: README, ARCHITECTURE-NOTES, TESTING-REFRESH-AND-MFA updated;
+  note MFA will come from IdP (e.g. Microsoft Entra) later
+- E2E and unit tests updated; backend and frontend tests pass

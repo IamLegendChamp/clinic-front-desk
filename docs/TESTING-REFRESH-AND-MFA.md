@@ -1,6 +1,6 @@
-# Testing refresh token and MFA (TOTP)
+# Testing refresh token (cookies + rotation)
 
-## Refresh token (cookies + rotation)
+## Refresh token
 
 **Behavior:** Access and refresh tokens are set in **httpOnly cookies** on login and refresh. The API does not return tokens in the response body. Refresh uses **rotation:** each refresh issues a new refresh token and the old one is revoked in the DB (one-time use).
 
@@ -18,42 +18,16 @@
 
 ---
 
-## MFA (TOTP)
-
-**Not Twilio.** This app uses **speakeasy** (TOTP): a shared secret and time-based 6-digit codes. No SMS, no external provider. You need an authenticator app (e.g. Google Authenticator, Microsoft Authenticator, Authy) on your phone.
-
-**Manual:**
-
-1. **Enable MFA**
-   - Log in to the app, go to the dashboard.
-   - Under “Two-factor authentication”, click **Enable MFA**.
-   - Scan the QR code with your authenticator app (or enter the secret manually if the app supports it).
-   - Enter the 6-digit code shown in the app and click **Confirm**.
-
-2. **Log in with MFA**
-   - Log out, then go to the login page.
-   - Enter email and password and submit.
-   - You should see “Enter verification code”.
-   - Enter the current 6-digit code from your authenticator app and submit.
-
-3. **API-only**
-   - `POST /api/auth/login` with `{ email, password }` → if MFA is enabled, response is `{ requiresMfa: true, tempToken, user }` (no cookies yet).
-   - `POST /api/auth/mfa/verify` with `{ tempToken, code }` (code = 6-digit TOTP) → returns `{ user }` and sets access + refresh cookies.
-
-**Optional env:** `MFA_APP_NAME` (default: “Clinic Front Desk”) – label shown in the authenticator app.
-
----
-
-## What enterprises use for MFA
+## What enterprises use for MFA (when you add an IdP later)
 
 | Type | Examples | Used for |
 |------|----------|----------|
-| **TOTP (what we use)** | Google Authenticator, Microsoft Authenticator, Authy; libs: speakeasy, otplib | Free, no vendor; good balance of security and UX. |
-| **SMS OTP** | Twilio, AWS SNS, Vonage | “Enter code we texted you”; paid, weaker (SIM swap). |
+| **TOTP** | Google Authenticator, Microsoft Authenticator, Authy | Time-based codes; often via identity provider. |
+| **SMS OTP** | Twilio, AWS SNS | “Enter code we texted you”; paid, weaker (SIM swap). |
 | **Push / WebAuthn / FIDO2** | Duo, Okta Verify, YubiKey | Strong; often via an identity provider. |
-| **Full identity providers** | Auth0, Okta, Azure AD, AWS Cognito | Login + MFA + SSO; enterprises often use these and turn on MFA in the provider. |
+| **Full identity providers** | Auth0, Okta, Azure AD (Entra), AWS Cognito | Login + MFA + SSO; enterprises use these and turn on MFA in the provider. |
 
-So: **TOTP (speakeasy) = no Twilio.** Enterprises use a mix: many use TOTP and/or an IdP (Auth0/Okta/Azure AD) with MFA; some add SMS (e.g. Twilio) for certain flows.
+This app currently has no built-in MFA; when you integrate an IdP (e.g. Microsoft Entra ID), MFA is handled there.
 
 ---
 

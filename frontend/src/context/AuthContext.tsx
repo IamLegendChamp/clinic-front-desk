@@ -1,18 +1,17 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { login as loginApi, getMe, mfaVerify, logoutApi, refreshTokens } from '../api/auth';
+
+type AuthModule = typeof import('shared/auth');
 
 type User = { id: string; email: string; role: string } | null;
 
-type LoginResult =
-  | { done: true }
-  | { done: false; mfaRequired: true; tempToken: string; user: User };
+type LoginResult = { done: true };
 
 type AuthContextType = {
     user: User;
     loading: boolean;
+    authApi: AuthModule | null;
     login: (email: string, password: string) => Promise<LoginResult>;
-    loginMfa: (tempToken: string, code: string) => Promise<void>;
     logout: () => void;
 };
 
@@ -21,48 +20,44 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User>(null);
     const [loading, setLoading] = useState(true);
+    const [authApi, setAuthApi] = useState<AuthModule | null>(null);
+
+    useEffect(() => {
+        import('shared/auth').then(setAuthApi);
+    }, []);
 
     const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
-        const res = await loginApi(email, password);
-        if ('requiresMfa' in res && res.requiresMfa) {
-            return {
-                done: false,
-                mfaRequired: true,
-                tempToken: res.tempToken,
-                user: res.user,
-            };
-        }
+        if (!authApi) return { done: true };
+        const res = await authApi.login(email, password);
         setUser(res.user);
         return { done: true };
-    }, []);
-
-    const loginMfa = useCallback(async (tempToken: string, code: string) => {
-        const res = await mfaVerify(tempToken, code);
-        setUser(res.user);
-    }, []);
+    }, [authApi]);
 
     const logout = useCallback(async () => {
         try {
-            await logoutApi();
+            if (authApi) await authApi.logoutApi();
         } finally {
             setUser(null);
             window.location.href = '/login';
         }
-    }, []);
+    }, [authApi]);
 
     useEffect(() => {
-        getMe()
+        if (!authApi) return;
+        authApi
+            .getMe()
             .then((res) => setUser(res.user))
             .catch(() =>
-                refreshTokens()
-                    .then(() => getMe().then((res) => setUser(res.user)))
+                authApi
+                    .refreshTokens()
+                    .then(() => authApi.getMe().then((res) => setUser(res.user)))
                     .catch(() => setUser(null))
             )
             .finally(() => setLoading(false));
-    }, []);
+    }, [authApi]);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, loginMfa, logout }}>
+        <AuthContext.Provider value={{ user, loading, authApi, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

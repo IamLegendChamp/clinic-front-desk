@@ -100,10 +100,11 @@ export const LoginPage = () => {
           onSubmit={handleSubmit}
           sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}
         >
-          <Box component="label" sx={{ display: 'block', fontWeight: 500, fontSize: '0.875rem', color: 'text.primary' }}>
+          <Box component="label" htmlFor="login-email" sx={{ display: 'block', fontWeight: 500, fontSize: '0.875rem', color: 'text.primary' }}>
             Email
           </Box>
           <input
+            id="login-email"
             name="email"
             type="email"
             required
@@ -111,10 +112,11 @@ export const LoginPage = () => {
             className="login-input"
             style={{ height: 28, minHeight: 28, maxHeight: 28, boxSizing: 'border-box' }}
           />
-          <Box component="label" sx={{ display: 'block', fontWeight: 500, fontSize: '0.875rem', color: 'text.primary' }}>
+          <Box component="label" htmlFor="login-password" sx={{ display: 'block', fontWeight: 500, fontSize: '0.875rem', color: 'text.primary' }}>
             Password
           </Box>
           <input
+            id="login-password"
             name="password"
             type="password"
             required

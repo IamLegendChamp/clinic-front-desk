@@ -8,7 +8,7 @@ A full-stack app for clinic front-desk staff: sign in, manage a walk-in queue, a
 
 | Area | What it does |
 |------|----------------|
-| **Auth** | Email + password login; JWT access + refresh tokens. Tokens are sent in **httpOnly cookies** (no tokens in response body or localStorage). Unauthenticated users are redirected to login. |
+| **Auth** | Email + password login; JWT access + refresh tokens. No built-in MFA (TOTP removed); when you add an IdP (e.g. Microsoft Entra), MFA is handled there. Tokens are sent in **httpOnly cookies** (no tokens in response body or localStorage). Unauthenticated users are redirected to login. |
 | **Refresh token** | When the access token expires, the app automatically gets a new one using the refresh token (sent in a cookie or body for compatibility). **Refresh token rotation:** each refresh issues a new refresh token and the old one is revoked in the DB, so tokens are one-time use. |
 | **Dashboard** | Landing page after login; links to Queue and Appointments; logout. |
 | **Queue & Appointments** | Placeholder pages for walk-in queue and appointment booking—full features coming later. |
@@ -91,7 +91,7 @@ A full-stack app for clinic front-desk staff: sign in, manage a walk-in queue, a
 ## Docs
 
 - **Architecture** — `docs/ARCHITECTURE-NOTES.md` (Web Components + Module Federation, shared remote, no logic in components).
-- **Testing refresh token** — `docs/TESTING-REFRESH-AND-MFA.md` (manual testing, cookies, refresh rotation).
+- **Testing refresh token** — `docs/TESTING-REFRESH-AND-MFA.md` (manual testing, cookies, refresh rotation; MFA removed, doc notes IdP-based MFA later).
 - **CI → Deploy** — `docs/CI-DEPLOY-SETUP.md` (GitHub Actions, Render + Vercel hooks).
 
 ---

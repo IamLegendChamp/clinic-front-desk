@@ -57,12 +57,11 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
         working-directory: frontend
-      - name: Start shared remote server
-        run: yarn workspace shared preview &
-      - name: Wait for shared remote
-        run: npx wait-on http://localhost:5174/remoteEntry.js --timeout 10000
       - name: Run E2E tests
-        run: yarn workspace frontend e2e
+        run: |
+          yarn workspace shared preview &
+          npx wait-on http://localhost:5174/assets/remoteEntry.js --timeout 10000
+          yarn workspace frontend e2e
 
   deploy:
     name: Deploy (Render + Vercel)

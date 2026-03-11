@@ -13,7 +13,9 @@ let queue: Array<() => void> = [];
 
 const onRefreshFail = () => {
   queue = [];
-  window.location.href = '/login';
+  if (!window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login';
+  }
 };
 
 api.interceptors.response.use(

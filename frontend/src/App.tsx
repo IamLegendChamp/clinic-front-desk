@@ -20,7 +20,7 @@ const App = () => (
                         <Route path="/queue" element={<QueuePage />} />
                         <Route path="/appointments" element={<AppointmentsPage />} />
                     </Route>
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>

@@ -7,10 +7,19 @@ import authRoutes from './routes/authRoutes';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+/** In dev, allow common localhost origins so CORS doesn't block the response. */
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? FRONTEND_URL
+    : [FRONTEND_URL, 'http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:3000'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 /** Same as createApp but uses express.json() for body parsing (for tests that need reliable body). */
 export const createTestApp = () => {
   const app = express();
-  app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+  app.use(cors(corsOptions));
   app.use(cookieParser());
   app.use(express.json());
   app.get('/', (req, res) => {
@@ -26,7 +35,7 @@ export const createTestApp = () => {
 
 export const createApp = () => {
   const app = express();
-  app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+  app.use(cors(corsOptions));
   app.use(cookieParser());
   app.use(jsonBody);
   app.get('/', (req, res) => {

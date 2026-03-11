@@ -14,6 +14,9 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    cors: true,
+  },
   plugins: [
     federation({
       name: 'shared',

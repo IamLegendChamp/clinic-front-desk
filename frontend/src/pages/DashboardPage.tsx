@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Button } from "../components/ui";
 
 export const DashboardPage = () => {
   const { user, logout } = useAuth();
@@ -9,9 +8,9 @@ export const DashboardPage = () => {
     <div className="page">
       <h1>Front Desk</h1>
       <p>Welcome, {user?.email}</p>
-      <Button type="button" variant="outlined" onClick={logout}>
+      <button type="button" className="btn-outlined" onClick={logout}>
         Logout
-      </Button>
+      </button>
       <p className="page-links">
         <Link to="/queue">Queue</Link>
         <Link to="/appointments">Appointments</Link>

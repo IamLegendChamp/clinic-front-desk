@@ -17,7 +17,8 @@
   "scripts": {
     "build": "yarn workspace shared build && yarn workspace frontend build",
     "dev": "concurrently \"yarn dev:shared\" \"yarn dev:frontend\"",
+    "dev:all": "concurrently \"yarn workspace backend dev\" \"yarn dev:shared\" \"yarn dev:frontend\"",
     "dev:shared": "yarn workspace shared dev",
-    "dev:frontend": "wait-on http://localhost:5174/remoteEntry.js -t 30000 && yarn workspace frontend dev"
+    "dev:frontend": "wait-on http://localhost:5174/assets/remoteEntry.js -t 30000 && yarn workspace frontend dev"
   }
 }

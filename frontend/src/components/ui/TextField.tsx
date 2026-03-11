@@ -1,4 +1,4 @@
-import { useRef, useEffect, createElement } from 'react';
+import { useRef, useEffect, createElement, forwardRef, useImperativeHandle } from 'react';
 import '@muibook/components/mui-input';
 
 type TextFieldProps = {
@@ -12,20 +12,25 @@ type TextFieldProps = {
   inputProps?: { maxLength?: number; inputMode?: string; pattern?: string };
 };
 
-export function TextField({
-  type = 'text',
-  label,
-  placeholder,
-  value = '',
-  disabled,
-  required,
-  onChange,
-  inputProps = {},
-}: TextFieldProps) {
-  const ref = useRef<HTMLElement & { value?: string }>(null);
+export const TextField = forwardRef<HTMLElement & { value?: string }, TextFieldProps>(function TextField(
+  {
+    type = 'text',
+    label,
+    placeholder,
+    value,
+    disabled,
+    required,
+    onChange,
+    inputProps = {},
+  },
+  ref
+) {
+  const innerRef = useRef<HTMLElement & { value?: string }>(null);
+
+  useImperativeHandle(ref, () => innerRef.current as HTMLElement & { value?: string }, []);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = innerRef.current;
     if (!el) return;
     el.setAttribute('type', type);
     if (label != null) el.setAttribute('label', label);
@@ -44,14 +49,15 @@ export function TextField({
   }, [type, label, placeholder, disabled, required, inputProps.maxLength, inputProps.inputMode, inputProps.pattern]);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = innerRef.current;
     if (!el) return;
     const v = String(value ?? '');
-    if ('value' in el && el.value !== v) (el as { value: string }).value = v;
+    if (value !== undefined && value !== null && 'value' in el && el.value !== v)
+      (el as { value: string }).value = v;
   }, [value]);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = innerRef.current;
     if (!el || !onChange) return;
     const handler = (e: Event) => {
       const target = e.target as HTMLInputElement & { value?: string };
@@ -61,5 +67,5 @@ export function TextField({
     return () => el.removeEventListener('input', handler);
   }, [onChange]);
 
-  return createElement('mui-input', { ref });
-}
+  return createElement('mui-input', { ref: innerRef });
+});

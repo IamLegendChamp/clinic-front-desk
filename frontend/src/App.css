@@ -18,10 +18,13 @@
   }
 }
 
-/* Page wrapper: consistent padding, works on small screens */
+/* Page wrapper: centered, larger type for dashboard and inner pages */
 .page {
   padding: 1rem;
-  max-width: 100%;
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 @media (min-width: 600px) {
@@ -46,45 +49,75 @@
 
 .page--narrow h1 {
   margin-top: 0;
-  font-size: 1.5rem;
-}
-
-/* Only style plain HTML inputs; MUI TextField has its own outline */
-.page--narrow input:not(.MuiInputBase-input) {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
-}
-
-.page--narrow input:not(.MuiInputBase-input):focus {
-  outline: none;
-  border-color: #333;
-}
-
-.page--narrow button[type="submit"] {
-  width: 100%;
-  padding: 10px 16px;
-  font-size: 16px;
-  cursor: pointer;
-  background: #333;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  margin-top: 0.25rem;
+  font-size: 1.75rem;
 }
 
 .page--narrow .form-error {
   color: #c00;
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin-bottom: 0.5rem;
+}
+
+/* Login inputs: visible border, compact - high specificity */
+#root input.login-input,
+#root .login-card input[type="email"],
+#root .login-card input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2px 8px;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  border: 1px solid rgba(0, 0, 0, 0.23) !important;
+  border-radius: 4px;
+  background: #fff !important;
+}
+#root input.login-input:focus,
+#root .login-card input[type="email"]:focus,
+#root .login-card input[type="password"]:focus {
+  outline: none !important;
+  border-color: #1976d2 !important;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
+}
+
+/* Native buttons - small, no custom element */
+#root .btn-primary {
+  padding: 5px 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.43;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: #1976d2;
+  color: #fff;
+  min-height: 30px;
+}
+#root .btn-primary:hover {
+  background: #1565c0;
+}
+
+#root .btn-outlined {
+  padding: 5px 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.43;
+  border-radius: 4px;
+  border: 1px solid rgba(25, 118, 210, 0.5);
+  cursor: pointer;
+  background: transparent;
+  color: #1976d2;
+  min-height: 30px;
+}
+#root .btn-outlined:hover {
+  background: rgba(25, 118, 210, 0.04);
 }
 
 /* Dashboard & inner pages */
 .page h1 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   font-size: 1.5rem;
 }
 
@@ -94,8 +127,20 @@
   }
 }
 
+.page p {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 600px) {
+  .page p {
+    font-size: 1.125rem;
+  }
+}
+
 .page-nav {
   margin-bottom: 1rem;
+  font-size: 1.0625rem;
 }
 
 .page-nav a {
@@ -109,12 +154,23 @@
 
 .page-links {
   margin-top: 1rem;
+  font-size: 1.0625rem;
+}
+
+@media (min-width: 600px) {
+  .page-links {
+    font-size: 1.125rem;
+  }
 }
 
 .page-links a {
   color: #0066cc;
   text-decoration: none;
   margin-right: 0.5rem;
+}
+
+.page-links span {
+  font-size: 1rem;
 }
 
 .page-links a:hover {
@@ -136,4 +192,5 @@
 .loading {
   padding: 2rem;
   text-align: center;
+  font-size: 1.0625rem;
 }
